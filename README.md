@@ -11,7 +11,8 @@ mvn quarkus:dev -Dquarkus.args="test-project/demo-spring-boot-todo-app org.openr
 ```
 
 > *TODO*
-> Pass the parameters to the Recipe object initialized (class introspection)
+> Load the Recipe's class from the FQName and instantiate the object
+> Pass the parameters to the Recipe object initialized (class introspection, etc.)
 > Load the recipe(s) from an external jar file
 
 ## Issue

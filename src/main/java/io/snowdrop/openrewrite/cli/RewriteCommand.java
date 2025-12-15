@@ -281,8 +281,6 @@ public class RewriteCommand implements Runnable {
         Environment env = createEnvironment();
         Recipe recipe = new FindAnnotations("@org.springframework.boot.autoconfigure.SpringBootApplication",false);
 
-        // new FindAnnotations("java.lang.SuppressWarnings",false);
-
         if ("org.openrewrite.Recipe$Noop".equals(recipe.getName())) {
             System.err.println("No recipes were activated. " +
                 "Activate a recipe by providing it as a command line argument.");
