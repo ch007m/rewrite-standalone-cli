@@ -8,22 +8,15 @@ import org.apache.maven.model.building.ModelSource;
 import org.apache.maven.model.resolution.InvalidRepositoryException;
 import org.apache.maven.model.resolution.ModelResolver;
 import org.apache.maven.model.resolution.UnresolvableModelException;
-import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
-import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory;
-import org.eclipse.aether.impl.DefaultServiceLocator;
-import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
-import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
-import org.eclipse.aether.spi.connector.transport.TransporterFactory;
-import org.eclipse.aether.transport.http.HttpTransporterFactory;
 
 import java.io.File;
 import java.util.List;
@@ -39,8 +32,8 @@ public class RepositoryModelResolver implements ModelResolver {
 	private final List<RemoteRepository> repositories;
 
 	public RepositoryModelResolver() {
-		this.repoSystem = newRepositorySystem();
-		this.session = newRepositorySystemSession(repoSystem);
+		this.repoSystem = MavenUtils.createRepositorySystem();
+		this.session = MavenUtils.createRepositorySession(this.repoSystem);
 		this.repositories = List
 				.of(new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2").build());
 	}
@@ -104,20 +97,6 @@ public class RepositoryModelResolver implements ModelResolver {
 		return new RepositoryModelResolver(this);
 	}
 
-	private RepositorySystem newRepositorySystem() {
-		DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
-		locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
-		locator.addService(TransporterFactory.class, HttpTransporterFactory.class);
-		return locator.getService(RepositorySystem.class);
-	}
-
-	private DefaultRepositorySystemSession newRepositorySystemSession(RepositorySystem system) {
-		DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
-		String userHome = System.getProperty("user.home");
-		LocalRepository localRepo = new LocalRepository(userHome + "/.m2/repository");
-		session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
-		return session;
-	}
 
 	public RepositorySystem getRepoSystem() {
 		return repoSystem;

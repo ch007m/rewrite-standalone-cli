@@ -15,14 +15,12 @@
  */
 package io.snowdrop.openrewrite.cli;
 
-import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.collection.CollectRequest;
-import org.eclipse.aether.graph.Dependency;
-import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
@@ -31,11 +29,9 @@ import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
 
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -53,9 +49,9 @@ public class MavenArtifactResolver {
     private final List<RemoteRepository> repositories;
 
     public MavenArtifactResolver() {
-        this.repositorySystem = createRepositorySystem();
-        this.session = createRepositorySystemSession();
-        this.repositories = createRepositories();
+        this.repositorySystem = MavenUtils.createRepositorySystem();
+        this.session = MavenUtils.createRepositorySession(this.repositorySystem);
+        this.repositories = MavenUtils.createDefaultRemoteRepositories();
     }
 
     /**
@@ -137,27 +133,11 @@ public class MavenArtifactResolver {
     /**
      * Resolves artifacts with their transitive dependencies.
      *
-     * @param gavCoordinates list of GAV coordinates
+     * @param dependencies the list of the dependencies
      * @return list of resolved file paths including transitive dependencies
      * @throws DependencyResolutionException if dependency resolution fails
      */
-    public List<Path> resolveArtifactsWithDependencies(List<String> gavCoordinates) throws DependencyResolutionException {
-        List<Dependency> dependencies = new ArrayList<>();
-
-        for (String gavCoordinate : gavCoordinates) {
-            if (isGavCoordinate(gavCoordinate)) {
-                String[] parts = gavCoordinate.split(":");
-                if (parts.length == 3) {
-                    String groupId = parts[0];
-                    String artifactId = parts[1];
-                    String version = parts[2];
-
-                    Artifact artifact = new DefaultArtifact(groupId, artifactId, "jar", version);
-                    dependencies.add(new Dependency(artifact, "compile"));
-                }
-            }
-        }
-
+    public List<Path> resolveArtifactsWithDependencies(List<Dependency> dependencies) throws DependencyResolutionException {
         CollectRequest collectRequest = new CollectRequest();
         collectRequest.setDependencies(dependencies);
         collectRequest.setRepositories(repositories);
@@ -173,33 +153,31 @@ public class MavenArtifactResolver {
         return resolvedPaths;
     }
 
-    private RepositorySystem createRepositorySystem() {
-        try {
-            // Try to use Plexus container to get RepositorySystem
-            org.codehaus.plexus.DefaultPlexusContainer container = new org.codehaus.plexus.DefaultPlexusContainer();
-            return container.lookup(RepositorySystem.class);
-        } catch (Exception e) {
-            // Fallback: Create a basic repository system manually
-            // This is a simplified approach that should work with the current Maven version
-            throw new RuntimeException("Failed to create repository system", e);
-        }
+
+
+    // ========== Repository system getters for sharing with other resolvers ==========
+
+    /**
+     * Get the repository system for use by other resolvers.
+     * @return the properly configured RepositorySystem
+     */
+    public RepositorySystem getRepositorySystem() {
+        return repositorySystem;
     }
 
-    private DefaultRepositorySystemSession createRepositorySystemSession() {
-        DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
-
-        // Set up local repository
-        String userHome = System.getProperty("user.home");
-        LocalRepository localRepo = new LocalRepository(userHome + "/.m2/repository");
-        session.setLocalRepositoryManager(repositorySystem.newLocalRepositoryManager(session, localRepo));
-
+    /**
+     * Get the repository session for use by other resolvers.
+     * @return the repository session
+     */
+    public DefaultRepositorySystemSession getSession() {
         return session;
     }
 
-    private List<RemoteRepository> createRepositories() {
-        return Arrays.asList(
-            new RemoteRepository.Builder("central", "default", "https://repo1.maven.org/maven2/").build(),
-            new RemoteRepository.Builder("sonatype-snapshots", "default", "https://oss.sonatype.org/content/repositories/snapshots/").build()
-        );
+    /**
+     * Get the remote repositories for use by other resolvers.
+     * @return the list of remote repositories
+     */
+    public List<RemoteRepository> getRemoteRepositories() {
+        return repositories;
     }
 }

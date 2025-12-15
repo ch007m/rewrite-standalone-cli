@@ -463,10 +463,14 @@ public class RewriteCommand implements Runnable {
             MavenUtils mavenUtils = new MavenUtils();
             Model model = mavenUtils.setupProject(Paths.get(projectRoot.toString(), "pom.xml").toFile());
 
-            // Convert the Pom dependencies as Maven GAV
-            Set<Artifact> artifacts = mavenUtils.convertDependenciesToArtifacts(model.getDependencies());
+            // Collect the GAVs and their transitive dependencies
+            MavenArtifactResolver mar =  new MavenArtifactResolver();
+            mar.resolveArtifactsWithDependencies(mavenUtils.convertModelDependenciesToAetherDependencies(model.getDependencies()));
+
             // Create a list of classpath containing the gav defined part of the dependencies
             RepositoryModelResolver rmp = new RepositoryModelResolver();
+
+            Set<Artifact> artifacts = mavenUtils.convertDependenciesToArtifacts(model.getDependencies());
             List<Path> classPaths = new ArrayList<>();
             for (Artifact a : artifacts) {
                 classPaths.add(Paths.get(rmp.resolveArtifactFile(a.getGroupId(),a.getArtifactId(),a.getVersion()).getAbsolutePath()));
@@ -477,7 +481,6 @@ public class RewriteCommand implements Runnable {
                 .styles(styles).logCompilationWarningsAndErrors(false);
             JavaTypeCache typeCache = new JavaTypeCache();
             javaParserBuilder.classpath(classPaths).typeCache(typeCache);
-            //javaParserBuilder.classpath("spring-boot").typeCache(typeCache);
 
             // Load the Java source files
             JavaParser jp = javaParserBuilder.build();
