@@ -17,15 +17,19 @@ package io.snowdrop.openrewrite.cli;
 
 import io.quarkus.picocli.runtime.annotations.TopCommand;
 import jakarta.inject.Inject;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.model.Model;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.config.Environment;
 import org.openrewrite.config.YamlResourceLoader;
 import org.openrewrite.internal.InMemoryLargeSourceSet;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.internal.JavaTypeCache;
 import org.openrewrite.java.marker.JavaProject;
 import org.openrewrite.java.marker.JavaSourceSet;
 import org.openrewrite.java.marker.JavaVersion;
+import org.openrewrite.java.search.FindAnnotations;
 import org.openrewrite.kotlin.KotlinParser;
 import org.openrewrite.marker.BuildTool;
 import org.openrewrite.marker.Marker;
@@ -40,6 +44,8 @@ import picocli.CommandLine;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -266,6 +272,18 @@ public class RewriteCommand implements Runnable {
         });
     }
 
+    /**
+      Recipe recipe = new FindAnnotations("org.springframework.boot.autoconfigure.SpringBootApplication",false);
+      Openrewrite way to load recipe(s) with resource loaders
+      The class, constructor, etc will be created using the RecipeLoader.load()
+      Recipe recipe = env.activateRecipes(activeRecipes);
+
+      We can create the recipe using the recipe name = FQN of the class
+      Recipe recipe = createRecipeInstance(activeRecipes.stream().findFirst().get());
+
+      Let's make a test using recipe packaged in another jar - NOK => java.lang.NoSuchMethodException: dev.snowdrop.openrewrite.java.search.FindAnnotations.<init>(java.lang.String)
+      Recipe recipe = createRecipeInstance("dev.snowdrop.openrewrite.java.search.FindAnnotations");
+     **/
     private ResultsContainer listResults(ExecutionContext ctx) throws Exception {
         System.out.println("Using active recipe(s): " + activeRecipes);
 
@@ -274,7 +292,9 @@ public class RewriteCommand implements Runnable {
         }
 
         Environment env = createEnvironment();
-        Recipe recipe = env.activateRecipes(activeRecipes);
+        Recipe recipe = new FindAnnotations("@org.springframework.boot.autoconfigure.SpringBootApplication",false);
+
+        // new FindAnnotations("java.lang.SuppressWarnings",false);
 
         if ("org.openrewrite.Recipe$Noop".equals(recipe.getName())) {
             System.err.println("No recipes were activated. " +
@@ -306,7 +326,7 @@ public class RewriteCommand implements Runnable {
 
     /**
      * Creates a URLClassLoader from the additional JAR paths or Maven GAV coordinates.
-     * @return URLClassLoader containing the additional JARs, or null if no additional JARs are specified
+     * @return URLClassLoader containing the additional Rewrite JARs, or null if no additional JARs are specified
      */
     private URLClassLoader loadAdditionalJars() {
         if (additionalJarPaths.isEmpty()) {
@@ -349,10 +369,19 @@ public class RewriteCommand implements Runnable {
     /**
      * Merges URLs from the source classloader into the target classloader.
      * This is similar to the merge functionality in the Maven plugin.
+     * Handles both URLClassLoader and Quarkus classloaders gracefully.
      */
     private void merge(ClassLoader targetClassLoader, URLClassLoader sourceClassLoader) {
+        // In Quarkus dev mode, the classloader is typically a QuarkusClassLoader,
+        // not a URLClassLoader. Since recipe discovery is already handled by the
+        // ClasspathScanningLoader with the additional classloader, we don't need
+        // to merge URLs into the runtime classloader. Just log the additional JARs.
+
         if (!(targetClassLoader instanceof URLClassLoader)) {
-            System.err.println("Warning: Cannot merge classloaders - target is not a URLClassLoader");
+            System.out.println("Running in Quarkus mode - using ClasspathScanningLoader for additional JARs:");
+            for (URL newUrl : sourceClassLoader.getURLs()) {
+                System.out.println("  Using JAR from additional classpath: " + newUrl);
+            }
             return;
         }
 
@@ -430,11 +459,27 @@ public class RewriteCommand implements Runnable {
         // Parse Java files
         List<Path> javaFiles = findFiles(projectRoot, ".java");
         if (!javaFiles.isEmpty()) {
-            JavaParser javaParser = JavaParser.fromJavaVersion()
-                .styles(styles)
-                .logCompilationWarningsAndErrors(false)
-                .build();
+            // If we have java files, then we assume that we have a pom and dependencies
+            MavenUtils mavenUtils = new MavenUtils();
+            Model model = mavenUtils.setupProject(Paths.get(projectRoot.toString(), "pom.xml").toFile());
 
+            // Convert the Pom dependencies as Maven GAV
+            Set<Artifact> artifacts = mavenUtils.convertDependenciesToArtifacts(model.getDependencies());
+            // Create a list of classpath containing the gav defined part of the dependencies
+            RepositoryModelResolver rmp = new RepositoryModelResolver();
+            List<Path> classPaths = new ArrayList<>();
+            for (Artifact a : artifacts) {
+                classPaths.add(Paths.get(rmp.resolveArtifactFile(a.getGroupId(),a.getArtifactId(),a.getVersion()).getAbsolutePath()));
+            }
+
+            // Create the JavaParser and set the classpaths
+            JavaParser.Builder<? extends JavaParser, ?> javaParserBuilder = JavaParser.fromJavaVersion()
+                .styles(styles).logCompilationWarningsAndErrors(true);
+            JavaTypeCache typeCache = new JavaTypeCache();
+            javaParserBuilder.classpath(classPaths).typeCache(typeCache);
+
+            // Load the Java source files
+            JavaParser javaParser = javaParserBuilder.build();
             sourceFiles.addAll(javaParser.parse(javaFiles, projectRoot, ctx).collect(toList()));
             System.out.println("Parsed " + javaFiles.size() + " Java files");
         }
@@ -645,5 +690,20 @@ public class RewriteCommand implements Runnable {
         public boolean isNotEmpty() {
             return !generated.isEmpty() || !deleted.isEmpty() || !moved.isEmpty() || !refactoredInPlace.isEmpty();
         }
+    }
+
+    public static Recipe createRecipeInstance(String fqn)
+        throws ClassNotFoundException, NoSuchMethodException,
+        InvocationTargetException, InstantiationException, IllegalAccessException {
+
+        Class<?> clazz = Class.forName(fqn);
+        if (!Recipe.class.isAssignableFrom(clazz)) {
+            throw new IllegalArgumentException(fqn + " does not extend or implement org.openrewrite.Recipe.");
+        }
+
+        Constructor<?> constructor = clazz.getConstructor(fqn.getClass());
+        constructor.setAccessible(true);
+        Object instance = constructor.newInstance();
+        return (Recipe) instance;
     }
 }

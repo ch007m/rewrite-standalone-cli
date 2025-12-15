@@ -24,6 +24,11 @@
         <surefire-plugin.version>3.2.5</surefire-plugin.version>
         <openrewrite.version>8.21.0</openrewrite.version>
         <openrewrite-recipe-bom.version>3.15.0</openrewrite-recipe-bom.version>
+
+        <maven.version>3.9.11</maven.version>
+        <maven-resolver.version>2.0.13</maven-resolver.version>
+        <maven-resolver-http.version>1.9.25</maven-resolver-http.version>
+        <eclipse-sisu-plexus.version>0.9.0.M3</eclipse-sisu-plexus.version>
     </properties>
 
     <dependencyManagement>
@@ -61,11 +66,13 @@
         </dependency>
 
         <!-- Our OpenRewrite recipes jar -->
+        <!--
         <dependency>
             <groupId>dev.snowdrop</groupId>
             <artifactId>openrewrite-recipes</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
+        -->
 
         <!-- OpenRewrite dependencies -->
         <dependency>
@@ -118,35 +125,58 @@
         </dependency>
 
         <!-- Maven Resolver dependencies for GAV artifact resolution -->
+        <!-- Search maven dependency -->
         <dependency>
-            <groupId>org.apache.maven.resolver</groupId>
-            <artifactId>maven-resolver-api</artifactId>
-            <version>1.9.18</version>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-model</artifactId>
+            <version>${maven.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-embedder</artifactId>
+            <version>${maven.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.resolver</groupId>
             <artifactId>maven-resolver-impl</artifactId>
-            <version>1.9.18</version>
+            <version>${maven-resolver.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.resolver</groupId>
             <artifactId>maven-resolver-connector-basic</artifactId>
-            <version>1.9.18</version>
+            <version>${maven-resolver.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.resolver</groupId>
             <artifactId>maven-resolver-transport-http</artifactId>
-            <version>1.9.18</version>
+            <version>${maven-resolver-http.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.resolver</groupId>
             <artifactId>maven-resolver-transport-file</artifactId>
-            <version>1.9.18</version>
+            <version>${maven-resolver.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-resolver-provider</artifactId>
             <version>3.9.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-embedder</artifactId>
+            <version>${maven.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.sisu</groupId>
+            <artifactId>org.eclipse.sisu.plexus</artifactId>
+            <version>${eclipse-sisu-plexus.version}</version>
+        </dependency>
+
+        <!-- Application to scan -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <version>3.5.8</version>
         </dependency>
 
         <!-- Test dependencies -->
@@ -154,6 +184,10 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit5</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.resolver</groupId>
+            <artifactId>maven-resolver-impl</artifactId>
         </dependency>
     </dependencies>
 
