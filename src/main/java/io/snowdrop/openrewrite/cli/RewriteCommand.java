@@ -38,6 +38,7 @@ import org.openrewrite.marker.OperatingSystemProvenance;
 import org.openrewrite.marker.ci.BuildEnvironment;
 import org.openrewrite.polyglot.OmniParser;
 import org.openrewrite.style.NamedStyles;
+//import org.openrewrite.table.SearchResults;
 import org.openrewrite.text.PlainTextParser;
 import picocli.CommandLine;
 
@@ -71,7 +72,7 @@ import static org.openrewrite.Tree.randomId;
     name = "rewrite",
     mixinStandardHelpOptions = true,
     version = "1.0.0-SNAPSHOT",
-    description = "Standalone OpenRewrite CLI tool for applying recipes to codebases",
+    description = "Standalone OpenRewrite CLI tool for applying recipe on the code source of an application",
     footer = "\nExample usage:\n" +
         "  rewrite /path/to/project org.openrewrite.java.format.AutoFormat\n" +
         "  rewrite --jar custom-recipes.jar --export-datatables /path/to/project MyRecipe\n" +
@@ -115,7 +116,8 @@ public class RewriteCommand implements Runnable {
 
     @CommandLine.Option(
         names = {"--export-datatables"},
-        description = "Export datatables to CSV files"
+        description = "Export datatables to CSV files",
+        defaultValue = "true"
     )
     boolean exportDatatables;
 
@@ -323,9 +325,28 @@ public class RewriteCommand implements Runnable {
         }
 
         LargeSourceSet sourceSet = loadSourceSet(env, ctx);
-        List<Result> results = runRecipe(recipe, sourceSet, ctx);
+        RecipeRun recipeRun = runRecipe(recipe, sourceSet, ctx);
 
-        return new ResultsContainer(projectRoot, results);
+        // The DataTable<SearchResult> will be available starting from: 8.69.0 !
+        /*
+        Map<DataTable<?>, List<?>> searchResults = recipeRun.getDataTables();
+        if (searchResults != null) {
+            searchResults.forEach((result, list) -> {
+                if (result.getClass().getSimpleName().startsWith("SearchResults")) {
+                    System.out.println("# Found " + list.size() + " search results.");
+                    list.stream().forEach(r -> {
+                        var row = (SearchResults.Row)r;
+                        System.out.println("# SourcePath: " + row.getSourcePath());
+                        System.out.println("# Result: " + row.getResult());
+                        System.out.println("# Recipe: " + row.getRecipe());
+                        System.out.println("==============================================");
+                    });
+                }
+            });
+        }
+        */
+
+        return new ResultsContainer(projectRoot, recipeRun.getChangeset().getAllResults());
     }
 
     /**
@@ -515,18 +536,16 @@ public class RewriteCommand implements Runnable {
         return new InMemoryLargeSourceSet(sourceFiles);
     }
 
-    private List<Result> runRecipe(Recipe recipe, LargeSourceSet sourceSet, ExecutionContext ctx) {
+    private RecipeRun runRecipe(Recipe recipe, LargeSourceSet sourceSet, ExecutionContext ctx) {
         System.out.println("Running recipe(s)...");
-        RecipeRun recipeRun = recipe.run(sourceSet, ctx);
-
+        RecipeRun rr = recipe.run(sourceSet, ctx);
         if (exportDatatables) {
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss-SSS"));
             Path datatableDirectoryPath = projectRoot.resolve("target").resolve("rewrite").resolve("datatables").resolve(timestamp);
             System.out.println("Printing available datatables to: " + datatableDirectoryPath);
-            recipeRun.exportDatatablesToCsv(datatableDirectoryPath, ctx);
+            rr.exportDatatablesToCsv(datatableDirectoryPath, ctx);
         }
-
-        return recipeRun.getChangeset().getAllResults();
+        return rr;
     }
 
     private List<Path> findFiles(Path root, String extension) throws IOException {

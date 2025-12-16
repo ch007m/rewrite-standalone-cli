@@ -23,3 +23,12 @@ recipeList:
   - dev.snowdrop.openrewrite.maven.search.FindDependencies:
       gavs: "org.springframework.boot:spring-boot-starter-web,io.jsonwebtoken:jjwt:0.9.1"
       matchId: match-dependency-001
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.yourorg.FindExample
+displayName: Find text example
+recipeList:
+  - org.openrewrite.text.Find:
+      find: GetMapping
+      filePattern: '**/*.java'
+      contextSize: 50
