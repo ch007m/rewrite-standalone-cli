@@ -134,7 +134,6 @@
             <version>${maven.version}</version>
         </dependency>
 
-
         <!-- Maven Resolver dependencies - explicit versions needed -->
         <dependency>
             <groupId>org.apache.maven.resolver</groupId>
