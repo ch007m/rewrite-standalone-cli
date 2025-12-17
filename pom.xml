@@ -11,22 +11,25 @@
     <description>Quarkus-based standalone CLI for OpenRewrite with Picocli</description>
 
     <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>21</maven.compiler.release>
+
+        <maven.version>3.9.11</maven.version>
+
         <compiler-plugin.version>3.12.1</compiler-plugin.version>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.29.4</quarkus.platform.version>
-        <skipITs>true</skipITs>
-        <surefire-plugin.version>3.2.5</surefire-plugin.version>
 
         <openrewrite-recipe-bom.version>3.15.0</openrewrite-recipe-bom.version>
         <openrewrite-bom.version>8.68.0</openrewrite-bom.version> <!-- 8.69.0-SNAPSHOT -->
 
-        <maven.version>3.9.11</maven.version>
+        <skipITs>true</skipITs>
+        <surefire-plugin.version>3.2.5</surefire-plugin.version>
         <maven-resolver-supplier.version>1.9.24</maven-resolver-supplier.version>
     </properties>
 

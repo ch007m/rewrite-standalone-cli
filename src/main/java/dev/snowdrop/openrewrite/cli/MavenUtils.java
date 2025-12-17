@@ -1,4 +1,4 @@
-package io.snowdrop.openrewrite.cli;
+package dev.snowdrop.openrewrite.cli;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;

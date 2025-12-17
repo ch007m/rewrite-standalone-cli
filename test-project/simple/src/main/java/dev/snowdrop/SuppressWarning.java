@@ -1,4 +1,9 @@
-public class Test {
+package dev.snowdrop;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class SuppressWarning {
     @SuppressWarnings("unused")
     void suppressUnusedWarning() {
         int usedVal = 5;

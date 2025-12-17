@@ -1,22 +1,6 @@
-/*
- * Copyright 2020 the original author or authors.
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package io.snowdrop.openrewrite.cli;
+package dev.snowdrop.openrewrite.cli;
 
-import io.quarkus.picocli.runtime.annotations.TopCommand;
-import jakarta.inject.Inject;
+import dev.snowdrop.openrewrite.cli.model.Config;
 import org.apache.maven.model.Model;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
@@ -38,9 +22,7 @@ import org.openrewrite.marker.OperatingSystemProvenance;
 import org.openrewrite.marker.ci.BuildEnvironment;
 import org.openrewrite.polyglot.OmniParser;
 import org.openrewrite.style.NamedStyles;
-//import org.openrewrite.table.SearchResults;
 import org.openrewrite.text.PlainTextParser;
-import picocli.CommandLine;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -64,124 +46,15 @@ import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 import static org.openrewrite.Tree.randomId;
 
-/**
- * Quarkus-based standalone CLI for OpenRewrite supporting dry-run mode
- */
-@TopCommand
-@CommandLine.Command(
-    name = "rewrite",
-    mixinStandardHelpOptions = true,
-    version = "1.0.0-SNAPSHOT",
-    description = "Standalone OpenRewrite CLI tool for applying recipe on the code source of an application",
-    footer = "\nExample usage:\n" +
-        "  rewrite /path/to/project org.openrewrite.java.format.AutoFormat\n" +
-        "  rewrite --jar custom-recipes.jar --export-datatables /path/to/project MyRecipe\n" +
-        "  rewrite --jar org.openrewrite:rewrite-java:8.62.4,dev.snowdrop:openrewrite-recipes:1.0.0-SNAPSHOT /path/to/project MyRecipe\n" +
-        "  rewrite --config /path/to/rewrite.yml /path/to/project MyRecipe"
-)
-public class RewriteCommand implements Runnable {
+public class Scanner {
 
-    @CommandLine.Parameters(
-        index = "0",
-        description = "The root directory of the project to analyze"
-    )
-    Path projectRoot;
+    private Config config;
 
-    @CommandLine.Parameters(
-        index = "1",
-        description = "Active recipe to run (e.g., org.openrewrite.java.format.AutoFormat)"
-    )
-    //Set<String> activeRecipes = new HashSet<>();
-    String activeRecipe;
-
-    @CommandLine.Parameters(
-        index = "2",
-        description = "Options of the recipe to be used to set the recipe's object fields. Example: annotationPattern=@SpringBootApplication",
-        split = ","
-    )
-    LinkedHashSet<String> recipeOptions;
-
-    @CommandLine.Option(
-        names = {"--jar"},
-        description = "Additional JAR files containing recipes (file paths or Maven GAV coordinates, can be specified multiple times or comma-separated)",
-        split = ","
-    )
-    List<String> additionalJarPaths = new ArrayList<>();
-
-    @CommandLine.Option(
-        names = {"--config", "-c"},
-        description = "Path to the rewrite.yml configuration file (default: ${DEFAULT-VALUE})"
-    )
-    String configLocation;
-
-    @CommandLine.Option(
-        names = {"--export-datatables"},
-        description = "Export datatables to CSV files",
-        defaultValue = "true"
-    )
-    boolean exportDatatables;
-
-    @CommandLine.Option(
-        names = {"--exclusions"},
-        description = "File patterns to exclude (can be specified multiple times)",
-        split = ","
-    )
-    Set<String> exclusions = new HashSet<>();
-
-    @CommandLine.Option(
-        names = {"--plain-text-masks"},
-        description = "Plain text file masks (can be specified multiple times)",
-        split = ","
-    )
-    Set<String> plainTextMasks = new HashSet<>();
-
-    @CommandLine.Option(
-        names = {"--size-threshold-mb"},
-        description = "Size threshold in MB for large files (default: ${DEFAULT-VALUE})"
-    )
-    int sizeThresholdMb = 10;
-
-    // Inject Quarkus configuration properties
-    @Inject
-    RewriteConfiguration config;
-
-    @Override
-    public void run() {
-        try {
-            // Use injected defaults if not specified via command line
-            if (configLocation == null) {
-                configLocation = config.configLocation();
-            }
-            if (sizeThresholdMb == 0) {
-                sizeThresholdMb = config.sizeThresholdMb();
-            }
-            if (!exportDatatables) {
-                exportDatatables = config.exportDatatables();
-            }
-            if (plainTextMasks.isEmpty() && config.plainTextMasks().isPresent()) {
-                plainTextMasks.addAll(Arrays.asList(config.plainTextMasks().get().split(",")));
-            }
-            if (exclusions.isEmpty() && config.exclusions().isPresent()) {
-                exclusions.addAll(Arrays.asList(config.exclusions().get().split(",")));
-            }
-
-            execute();
-        } catch (Exception e) {
-            System.err.println("Error executing rewrite command: " + e.getMessage());
-            e.printStackTrace();
-            System.exit(1);
-        }
+    public Scanner(Config cfg) {
+        this.config = cfg;
     }
 
-    public void execute() throws Exception {
-        System.out.println("Starting OpenRewrite dry-run...");
-        System.out.println("Project root: " + projectRoot.toAbsolutePath());
-        System.out.println("Active recipe: " + activeRecipe);
-
-        if (!additionalJarPaths.isEmpty()) {
-            System.out.println("Additional JAR files: " + additionalJarPaths);
-        }
-
+    public void run() throws Exception {
         List<Throwable> throwables = new ArrayList<>();
         ExecutionContext ctx = createExecutionContext(throwables);
 
@@ -242,7 +115,7 @@ public class RewriteCommand implements Runnable {
             }
 
             // Create patch file
-            Path outPath = projectRoot.resolve("target").resolve("rewrite");
+            Path outPath = config.getAppPath().resolve("target").resolve("rewrite");
             try {
                 Files.createDirectories(outPath);
             } catch (IOException e) {
@@ -252,17 +125,17 @@ public class RewriteCommand implements Runnable {
             Path patchFile = outPath.resolve("rewrite.patch");
             try (BufferedWriter writer = Files.newBufferedWriter(patchFile)) {
                 Stream.concat(
-                    Stream.concat(results.generated.stream(), results.deleted.stream()),
-                    Stream.concat(results.moved.stream(), results.refactoredInPlace.stream())
-                )
-                .map(Result::diff)
-                .forEach(diff -> {
-                    try {
-                        writer.write(diff + "\n");
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+                        Stream.concat(results.generated.stream(), results.deleted.stream()),
+                        Stream.concat(results.moved.stream(), results.refactoredInPlace.stream())
+                    )
+                    .map(Result::diff)
+                    .forEach(diff -> {
+                        try {
+                            writer.write(diff + "\n");
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
             } catch (Exception e) {
                 throw new RuntimeException("Unable to generate rewrite result.", e);
             }
@@ -272,7 +145,7 @@ public class RewriteCommand implements Runnable {
             System.err.println("Estimate time saved: " + formatDuration(estimateTimeSaved));
             System.err.println("Run 'mvn rewrite:run' to apply the recipes.");
         } else {
-            System.out.println("Applying recipes would make no changes. No patch file generated.");
+            System.out.println("Applying recipe would make no changes. No patch file generated.");
         }
     }
 
@@ -284,10 +157,13 @@ public class RewriteCommand implements Runnable {
     }
 
     private ResultsContainer listResults(ExecutionContext ctx) throws Exception {
+        // TODO: To be reviewed to process a list of recipes
+        String activeRecipe = config.getActiveRecipes().getFirst();
+
         System.out.println("Using active recipe(s): " + activeRecipe);
 
         if (activeRecipe.isEmpty()) {
-            return new ResultsContainer(projectRoot, emptyList());
+            return new ResultsContainer(config.getAppPath(), emptyList());
         }
 
         Environment env = createEnvironment();
@@ -299,13 +175,15 @@ public class RewriteCommand implements Runnable {
         Recipe recipe = env.activateRecipes(activeRecipe);
 
         // The Recipe class has been instantiated from the FQName string but the fields/parameters still need to be set
-        //Set<String> options = Collections.singleton("annotationPattern=@org.springframework.boot.autoconfigure.SpringBootApplication");
-        configureRecipeOptions(recipe, recipeOptions);
+        // Set<String> options = Collections.singleton("annotationPattern=@org.springframework.boot.autoconfigure.SpringBootApplication");
+        if (config.getRecipeOptions() != null && !config.getRecipeOptions().isEmpty()) {
+            configureRecipeOptions(recipe, config.getRecipeOptions());
+        }
 
         if ("org.openrewrite.Recipe$Noop".equals(recipe.getName())) {
             System.err.println("No recipes were activated. " +
                 "Activate a recipe by providing it as a command line argument.");
-            return new ResultsContainer(projectRoot, emptyList());
+            return new ResultsContainer(config.getAppPath(), emptyList());
         }
 
         System.out.println("Validating active recipes...");
@@ -346,84 +224,7 @@ public class RewriteCommand implements Runnable {
         }
         */
 
-        return new ResultsContainer(projectRoot, recipeRun.getChangeset().getAllResults());
-    }
-
-    /**
-     * Creates a URLClassLoader from the additional JAR paths or Maven GAV coordinates.
-     * @return URLClassLoader containing the additional Rewrite JARs, or null if no additional JARs are specified
-     */
-    private URLClassLoader loadAdditionalJars() {
-        if (additionalJarPaths.isEmpty()) {
-            return null;
-        }
-
-        List<URL> jarUrls = new ArrayList<>();
-        MavenArtifactResolver resolver = new MavenArtifactResolver();
-
-        try {
-            // Resolve all jar paths/coordinates to actual file paths
-            List<Path> resolvedPaths = resolver.resolveArtifacts(additionalJarPaths);
-
-            for (Path jarPath : resolvedPaths) {
-                try {
-                    if (!Files.exists(jarPath)) {
-                        System.err.println("Warning: JAR file does not exist: " + jarPath);
-                        continue;
-                    }
-                    if (!jarPath.toString().toLowerCase().endsWith(".jar")) {
-                        System.err.println("Warning: File is not a JAR: " + jarPath);
-                        continue;
-                    }
-                    jarUrls.add(jarPath.toUri().toURL());
-                    System.out.println("Loaded additional JAR: " + jarPath);
-                } catch (MalformedURLException e) {
-                    System.err.println("Could not load JAR: " + jarPath + " - " + e.getMessage());
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Error resolving Maven artifacts: " + e.getMessage());
-            e.printStackTrace();
-            return null;
-        }
-
-        return jarUrls.isEmpty() ? null :
-            URLClassLoader.newInstance(jarUrls.toArray(new URL[0]), this.getClass().getClassLoader());
-    }
-
-    /**
-     * Merges URLs from the source classloader into the target classloader.
-     * This is similar to the merge functionality in the Maven plugin.
-     * Handles both URLClassLoader and Quarkus classloaders gracefully.
-     */
-    private void merge(ClassLoader targetClassLoader, URLClassLoader sourceClassLoader) {
-        // In Quarkus dev mode, the classloader is typically a QuarkusClassLoader,
-        // not a URLClassLoader. Since recipe discovery is already handled by the
-        // ClasspathScanningLoader with the additional classloader, we don't need
-        // to merge URLs into the runtime classloader. Just log the additional JARs.
-
-        if (!(targetClassLoader instanceof URLClassLoader)) {
-            System.out.println("Running in Quarkus mode - using ClasspathScanningLoader for additional JARs:");
-            for (URL newUrl : sourceClassLoader.getURLs()) {
-                System.out.println("  Using JAR from additional classpath: " + newUrl);
-            }
-            return;
-        }
-
-        URLClassLoader targetUrlClassLoader = (URLClassLoader) targetClassLoader;
-        Set<String> existingVersionlessJars = new HashSet<>();
-
-        for (URL existingUrl : targetUrlClassLoader.getURLs()) {
-            existingVersionlessJars.add(stripVersion(existingUrl));
-        }
-
-        for (URL newUrl : sourceClassLoader.getURLs()) {
-            if (!existingVersionlessJars.contains(stripVersion(newUrl))) {
-                // Note: This is a simplified version. In a real implementation,
-                // you might need to use reflection to add URLs to the URLClassLoader
-                System.out.println("Would add JAR to classpath: " + newUrl);
-            }
-        }
+        return new ResultsContainer(config.getAppPath(), recipeRun.getChangeset().getAllResults());
     }
 
     /**
@@ -452,9 +253,9 @@ public class RewriteCommand implements Runnable {
 
         // Load the YAML configuration file if it exists from the project to scan
         Path configPath;
-        if (Paths.get(configLocation).isAbsolute()) {
+        if (Paths.get(config.getYamlRecipes()).isAbsolute()) {
             // Use absolute path directly
-            configPath = Paths.get(configLocation);
+            configPath = Paths.get(config.getYamlRecipes());
         } else {
             // Check for APP_PROJECT environment variable first
             String appProject = System.getenv("APP_PROJECT");
@@ -462,7 +263,7 @@ public class RewriteCommand implements Runnable {
                 configPath = Paths.get(appProject);
             } else {
                 // Fall back to resolving against project root
-                configPath = projectRoot.resolve(configLocation);
+                configPath = config.getAppPath().resolve(config.getYamlRecipes());
             }
         }
 
@@ -482,11 +283,11 @@ public class RewriteCommand implements Runnable {
         List<SourceFile> sourceFiles = new ArrayList<>();
 
         // Parse Java files
-        List<Path> javaFiles = findFiles(projectRoot, ".java");
+        List<Path> javaFiles = findFiles(config.getAppPath(), ".java");
         if (!javaFiles.isEmpty()) {
             // If we have java files, then we assume that we have a pom and dependencies
             MavenUtils mavenUtils = new MavenUtils();
-            Model model = mavenUtils.setupProject(Paths.get(projectRoot.toString(), "pom.xml").toFile());
+            Model model = mavenUtils.setupProject(Paths.get(config.getAppPath().toString(), "pom.xml").toFile());
 
             // Collect the GAVs and their transitive dependencies
             MavenArtifactResolver mar = new MavenArtifactResolver();
@@ -500,31 +301,31 @@ public class RewriteCommand implements Runnable {
 
             // Load the Java source files
             JavaParser jp = javaParserBuilder.build();
-            sourceFiles.addAll(jp.parse(javaFiles, projectRoot, ctx).toList());
+            sourceFiles.addAll(jp.parse(javaFiles, config.getAppPath(), ctx).toList());
             System.out.println("Parsed " + javaFiles.size() + " Java files");
         }
 
         // Parse Kotlin files
-        List<Path> kotlinFiles = findFiles(projectRoot, ".kt");
+        List<Path> kotlinFiles = findFiles(config.getAppPath(), ".kt");
         if (!kotlinFiles.isEmpty()) {
             KotlinParser kotlinParser = KotlinParser.builder().build();
-            sourceFiles.addAll(kotlinParser.parse(kotlinFiles, projectRoot, ctx).toList());
+            sourceFiles.addAll(kotlinParser.parse(kotlinFiles, config.getAppPath(), ctx).toList());
             System.out.println("Parsed " + kotlinFiles.size() + " Kotlin files");
         }
 
         // Parse other files (XML, YAML, properties, etc.)
-        Set<String> masks = plainTextMasks.isEmpty() ? getDefaultPlainTextMasks() : plainTextMasks;
+        Set<String> masks = config.getPlainTextMasks().isEmpty() ? getDefaultPlainTextMasks() : config.getPlainTextMasks();
         OmniParser omniParser = OmniParser.builder(
-            OmniParser.defaultResourceParsers(),
-            PlainTextParser.builder()
-                .plainTextMasks(projectRoot, masks)
-                .build()
-        )
-        .sizeThresholdMb(sizeThresholdMb)
-        .build();
+                OmniParser.defaultResourceParsers(),
+                PlainTextParser.builder()
+                    .plainTextMasks(config.getAppPath(), masks)
+                    .build()
+            )
+            .sizeThresholdMb(config.getSizeThresholdMb())
+            .build();
 
-        List<Path> otherFiles = omniParser.acceptedPaths(projectRoot, projectRoot);
-        sourceFiles.addAll(omniParser.parse(otherFiles, projectRoot, ctx).toList());
+        List<Path> otherFiles = omniParser.acceptedPaths(config.getAppPath(), config.getAppPath());
+        sourceFiles.addAll(omniParser.parse(otherFiles, config.getAppPath(), ctx).toList());
 
         // Add provenance markers
         List<Marker> provenance = generateProvenance();
@@ -539,9 +340,9 @@ public class RewriteCommand implements Runnable {
     private RecipeRun runRecipe(Recipe recipe, LargeSourceSet sourceSet, ExecutionContext ctx) {
         System.out.println("Running recipe(s)...");
         RecipeRun rr = recipe.run(sourceSet, ctx);
-        if (exportDatatables) {
+        if (config.canExportDatatables()) {
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss-SSS"));
-            Path datatableDirectoryPath = projectRoot.resolve("target").resolve("rewrite").resolve("datatables").resolve(timestamp);
+            Path datatableDirectoryPath = config.getAppPath().resolve("target").resolve("rewrite").resolve("datatables").resolve(timestamp);
             System.out.println("Printing available datatables to: " + datatableDirectoryPath);
             rr.exportDatatablesToCsv(datatableDirectoryPath, ctx);
         }
@@ -551,7 +352,7 @@ public class RewriteCommand implements Runnable {
     private List<Path> findFiles(Path root, String extension) throws IOException {
         List<Path> files = new ArrayList<>();
 
-        Collection<PathMatcher> exclusionMatchers = exclusions.stream()
+        Collection<PathMatcher> exclusionMatchers = config.getExclusions().stream()
             .map(pattern -> root.getFileSystem().getPathMatcher("glob:" + pattern))
             .toList();
 
@@ -599,7 +400,7 @@ public class RewriteCommand implements Runnable {
             buildEnvironment,
             OperatingSystemProvenance.current(),
             new BuildTool(randomId(), BuildTool.Type.Gradle, "standalone"), // Generic build tool
-            new JavaProject(randomId(), projectRoot.getFileName().toString(),
+            new JavaProject(randomId(), config.getAppPath().getFileName().toString(),
                 new JavaProject.Publication("standalone", "standalone", "1.0.0")),
             new JavaVersion(randomId(), javaRuntimeVersion, javaVendor, javaRuntimeVersion, javaRuntimeVersion),
             JavaSourceSet.build("main", emptyList())
@@ -790,4 +591,84 @@ public class RewriteCommand implements Runnable {
         throw new RuntimeException(
             String.format("Unable to convert option: %s value: %s to type: %s", name, optionValue, type));
     }
+
+    /**
+     * Creates a URLClassLoader from the additional JAR paths or Maven GAV coordinates.
+     *
+     * @return URLClassLoader containing the additional Rewrite JARs, or null if no additional JARs are specified
+     */
+    private URLClassLoader loadAdditionalJars() {
+        if (config.getAdditionalJarPaths().isEmpty()) {
+            return null;
+        }
+
+        List<URL> jarUrls = new ArrayList<>();
+        MavenArtifactResolver resolver = new MavenArtifactResolver();
+
+        try {
+            // Resolve all jar paths/coordinates to actual file paths
+            List<Path> resolvedPaths = resolver.resolveArtifacts(config.getAdditionalJarPaths());
+
+            for (Path jarPath : resolvedPaths) {
+                try {
+                    if (!Files.exists(jarPath)) {
+                        System.err.println("Warning: JAR file does not exist: " + jarPath);
+                        continue;
+                    }
+                    if (!jarPath.toString().toLowerCase().endsWith(".jar")) {
+                        System.err.println("Warning: File is not a JAR: " + jarPath);
+                        continue;
+                    }
+                    jarUrls.add(jarPath.toUri().toURL());
+                    System.out.println("Loaded additional JAR: " + jarPath);
+                } catch (MalformedURLException e) {
+                    System.err.println("Could not load JAR: " + jarPath + " - " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error resolving Maven artifacts: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+
+        return jarUrls.isEmpty() ? null :
+            URLClassLoader.newInstance(jarUrls.toArray(new URL[0]), this.getClass().getClassLoader());
+    }
+
+    /**
+     * Merges URLs from the source classloader into the target classloader.
+     * This is similar to the merge functionality in the Maven plugin.
+     * Handles both URLClassLoader and Quarkus classloaders gracefully.
+     */
+    private void merge(ClassLoader targetClassLoader, URLClassLoader sourceClassLoader) {
+        // In Quarkus dev mode, the classloader is typically a QuarkusClassLoader,
+        // not a URLClassLoader. Since recipe discovery is already handled by the
+        // ClasspathScanningLoader with the additional classloader, we don't need
+        // to merge URLs into the runtime classloader. Just log the additional JARs.
+
+        if (!(targetClassLoader instanceof URLClassLoader)) {
+            System.out.println("Running in Quarkus mode - using ClasspathScanningLoader for additional JARs:");
+            for (URL newUrl : sourceClassLoader.getURLs()) {
+                System.out.println("  Using JAR from additional classpath: " + newUrl);
+            }
+            return;
+        }
+
+        URLClassLoader targetUrlClassLoader = (URLClassLoader) targetClassLoader;
+        Set<String> existingVersionlessJars = new HashSet<>();
+
+        for (URL existingUrl : targetUrlClassLoader.getURLs()) {
+            existingVersionlessJars.add(stripVersion(existingUrl));
+        }
+
+        for (URL newUrl : sourceClassLoader.getURLs()) {
+            if (!existingVersionlessJars.contains(stripVersion(newUrl))) {
+                // Note: This is a simplified version. In a real implementation,
+                // you might need to use reflection to add URLs to the URLClassLoader
+                System.out.println("Would add JAR to classpath: " + newUrl);
+            }
+        }
+    }
+
+
 }

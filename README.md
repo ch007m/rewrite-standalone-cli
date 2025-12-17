@@ -38,7 +38,7 @@ $qrun test-project/demo-spring-boot-todo-app org.openrewrite.java.search.FindAnn
 
 The command lone application also supports to load the recipes from an external jar file using the Maven GAV coordinates
 ```shell
-mvn quarkus:dev -Dquarkus.args="--jar dev.snowdrop:openrewrite-recipes:1.0.0-SNAPSHOT test-project/demo-spring-boot-todo-app dev.snowdrop.openrewrite.java.search.FindAnnotations pattern=@org.springframework.boot.autoconfigure.SpringBootApplication,matchId=1234"
+mvn quarkus:dev -Dquarkus.args="--jar dev.snowdrop:openrewrite-recipes:1.0.0-SNAPSHOT test-project/demo-spring-boot-todo-app search.java.dev.snowdrop.mtool.openrewrite.FindAnnotations pattern=@org.springframework.boot.autoconfigure.SpringBootApplication,matchId=1234"
 ```
 
 Enjoy :-)

@@ -1,4 +1,4 @@
-package io.snowdrop.openrewrite.cli;
+package dev.snowdrop.openrewrite.cli;
 
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Parent;
@@ -10,15 +10,12 @@ import org.apache.maven.model.resolution.ModelResolver;
 import org.apache.maven.model.resolution.UnresolvableModelException;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
-import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.ArtifactRequest;
-import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
 
-import java.io.File;
 import java.util.List;
 
 /**
@@ -44,17 +41,6 @@ public class RepositoryModelResolver implements ModelResolver {
 		this.session = original.session;
 		this.repositories = original.repositories;
 	}
-
-    public File resolveArtifactFile(
-        String groupId,
-        String artifactId,
-        String version) throws ArtifactResolutionException {
-
-        Artifact jarArtifact = new DefaultArtifact(groupId, artifactId, "", "jar", version);
-        ArtifactRequest request = new ArtifactRequest(jarArtifact, repositories, null);
-        ArtifactResult result = repoSystem.resolveArtifact(session, request);
-        return result.getArtifact().getFile();
-    }
 
 	@Override
 	public ModelSource resolveModel(String groupId, String artifactId, String version)
