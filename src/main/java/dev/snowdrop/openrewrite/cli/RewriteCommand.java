@@ -24,7 +24,7 @@ import java.nio.file.Path;
 import java.util.*;
 
 /**
- * Quarkus-based standalone CLI for OpenRewrite supporting dry-run mode
+ * Quarkus-based standalone CLI for OpenRewrite
  */
 @TopCommand
 @CommandLine.Command(
@@ -142,7 +142,7 @@ public class RewriteCommand implements Runnable {
         cfg.setExclusions(exclusions);
         cfg.setPlainTextMasks(plainTextMasks);
 
-        System.out.println("Starting OpenRewrite dry-run...");
+        System.out.println("Starting OpenRewrite ...");
         System.out.println("Project root: " + projectRoot.toAbsolutePath());
         System.out.println("Active recipe: " + activeRecipe);
 

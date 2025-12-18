@@ -1,6 +1,6 @@
 ## Quarkus Openrewrite client
 
-This project support to execute an Openrewrite Recipe without the need to use the maven goal `rewrite:dryrun or rewrite:run`
+This project support to execute an Openrewrite Recipe without the need to use the maven goal `rewrite:dryRun`
 
 ## Prerequisite
 
