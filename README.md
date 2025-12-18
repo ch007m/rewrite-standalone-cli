@@ -1,6 +1,11 @@
 ## Quarkus Openrewrite client
 
-This project support to execute an Openrewrite Recipe without the need to use the maven goal `rewrite:dryRun`
+This project support to execute an Openrewrite Recipe without the need to use the maven goal `rewrite:dryRun` according to the following scenario.
+
+- Use the FQName of the recipe as parameter: `-r or --recipe <FQName_recipe>`. Example: `-r org.openrewrite.java.format.AutoFormat`. The tool will try to find the class of the recipe from the classes loaded using the runtime classpath
+- The fields of the Recipe can be defined using the parameter `-o or --options "k=v,k=v,...`. Example: `-o annotationPattern=@org.springframework.boot.autoconfigure.SpringBootApplication`
+- If Recipe is packaged in another JAR file, then provide its PATH or Maven GAV using `--jar <PATH_OR_GAV>`. Example: `--jar dev.snowdrop:openrewrite-recipes:1.0.0-SNAPSHOT test-project/demo-spring-boot-todo-app -r dev.snowdrop.mtool.openrewrite.java.search.FindAnnotations`
+- The recipes can also be configured using a YAML recipe file and parameter `-c or --config <REWRITE_YAML_NAME>`. Example: `-c rewrite.yml`
 
 ## Prerequisite
 
