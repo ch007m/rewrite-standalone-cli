@@ -5,9 +5,11 @@ import dev.snowdrop.openrewrite.cli.model.ResultsContainer;
 import dev.snowdrop.openrewrite.cli.toolbox.ClassLoaderUtils;
 import dev.snowdrop.openrewrite.cli.toolbox.MavenArtifactResolver;
 import dev.snowdrop.openrewrite.cli.toolbox.MavenUtils;
+import dev.snowdrop.openrewrite.cli.toolbox.SanitizedMarkerPrinter;
 import org.apache.maven.model.Model;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
+import org.openrewrite.binary.Binary;
 import org.openrewrite.config.*;
 import org.openrewrite.internal.InMemoryLargeSourceSet;
 import org.openrewrite.java.JavaParser;
@@ -22,13 +24,15 @@ import org.openrewrite.marker.Markers;
 import org.openrewrite.marker.OperatingSystemProvenance;
 import org.openrewrite.marker.ci.BuildEnvironment;
 import org.openrewrite.polyglot.OmniParser;
+import org.openrewrite.quark.Quark;
+import org.openrewrite.remote.Remote;
 import org.openrewrite.text.PlainTextParser;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.net.URLClassLoader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
@@ -96,11 +100,13 @@ public class RewriteScanner {
             }
         }
 
+        // TODO: Review this code with maven plugin: AbstractRewriteRunMojo & AbstractRewriteDryRunMojo !
         if (results.isNotEmpty()) {
             Duration estimateTimeSaved = Duration.ZERO;
 
             for (Result result : results.getGenerated()) {
                 assert result.getAfter() != null;
+                if (!config.isDryRun()) {writeAfter(config.getAppPath(), result, ctx);}
                 System.err.println("These recipes would generate a new file " +
                     result.getAfter().getSourcePath() + ":");
                 logRecipesThatMadeChanges(result);
@@ -126,6 +132,7 @@ public class RewriteScanner {
                 logRecipesThatMadeChanges(result);
                 estimateTimeSaved = estimateTimeSaved.plus(result.getTimeSavings() != null ?
                     result.getTimeSavings() : Duration.ZERO);
+                if (!config.isDryRun()) {writeAfter(config.getAppPath(), result, ctx);}
             }
 
             for (Result result : results.getRefactoredInPlace()) {
@@ -135,6 +142,7 @@ public class RewriteScanner {
                 logRecipesThatMadeChanges(result);
                 estimateTimeSaved = estimateTimeSaved.plus(result.getTimeSavings() != null ?
                     result.getTimeSavings() : Duration.ZERO);
+                if (!config.isDryRun()) {writeAfter(config.getAppPath(), result, ctx);}
             }
 
             // Create patch file
@@ -558,5 +566,58 @@ public class RewriteScanner {
             String.format("Unable to convert option: %s value: %s to type: %s", name, optionValue, type));
     }
 
+    private static void writeAfter(Path root, Result result, ExecutionContext ctx) {
+        if (result.getAfter() == null || result.getAfter() instanceof Quark) {
+            return;
+        }
+        Path targetPath = root.resolve(result.getAfter().getSourcePath());
+        File targetFile = targetPath.toFile();
+        if (!targetFile.getParentFile().exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            targetFile.getParentFile().mkdirs();
+        }
+        if (result.getAfter() instanceof Binary) {
+            try (FileOutputStream sourceFileWriter = new FileOutputStream(targetFile)) {
+                sourceFileWriter.write(((Binary) result.getAfter()).getBytes());
+            } catch (IOException e) {
+                throw new UncheckedIOException("Unable to rewrite source files", e);
+            }
+        } else if (result.getAfter() instanceof Remote) {
+            Remote remote = (Remote) result.getAfter();
+            try (FileOutputStream sourceFileWriter = new FileOutputStream(targetFile)) {
+                InputStream source = remote.getInputStream(ctx);
+                byte[] buf = new byte[4096];
+                int length;
+                while ((length = source.read(buf)) > 0) {
+                    sourceFileWriter.write(buf, 0, length);
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException("Unable to rewrite source files", e);
+            }
+        } else if (!(result.getAfter() instanceof Quark)) {
+            // Don't attempt to write to a Quark; it has already been logged as change that has been made
+            Charset charset = result.getAfter().getCharset() == null ? StandardCharsets.UTF_8 : result.getAfter().getCharset();
+            try (BufferedWriter sourceFileWriter = Files.newBufferedWriter(targetPath, charset)) {
+                sourceFileWriter.write(result.getAfter().printAll(new PrintOutputCapture<>(0, new SanitizedMarkerPrinter())));
+            } catch (IOException e) {
+                throw new UncheckedIOException("Unable to rewrite source files", e);
+            }
+        }
+        if (result.getAfter().getFileAttributes() != null) {
+            FileAttributes fileAttributes = result.getAfter().getFileAttributes();
+            if (targetFile.canRead() != fileAttributes.isReadable()) {
+                //noinspection ResultOfMethodCallIgnored
+                targetFile.setReadable(fileAttributes.isReadable());
+            }
+            if (targetFile.canWrite() != fileAttributes.isWritable()) {
+                //noinspection ResultOfMethodCallIgnored
+                targetFile.setWritable(fileAttributes.isWritable());
+            }
+            if (targetFile.canExecute() != fileAttributes.isExecutable()) {
+                //noinspection ResultOfMethodCallIgnored
+                targetFile.setExecutable(fileAttributes.isExecutable());
+            }
+        }
+    }
 
 }
