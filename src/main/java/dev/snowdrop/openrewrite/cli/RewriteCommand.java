@@ -194,7 +194,8 @@ public class RewriteCommand implements Runnable {
             System.out.println("Additional JAR files: " + cfg.getAdditionalJarPaths());
         }
 
-        Scanner scanner = new Scanner(cfg);
+        RewriteScanner scanner = new RewriteScanner(cfg);
+        scanner.init();
         return scanner.run();
     }
 }
