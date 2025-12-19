@@ -72,7 +72,7 @@ public class RewriteScanner {
     }
 
     public ResultsContainer run() throws Exception {
-        ResultsContainer results = listResults();
+        ResultsContainer results = processRecipes();
         if(config.isDryRun()) {
             createPatchFile(results);
         }
@@ -179,7 +179,7 @@ public class RewriteScanner {
         }
     }
 
-    private ResultsContainer listResults() {
+    private ResultsContainer processRecipes() {
         RecipeRun recipeRun = null;
         Recipe recipe = null;
         boolean yamlRecipes = false;
