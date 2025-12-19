@@ -248,9 +248,7 @@ public class RewriteScanner {
 
         if (additionalJarsClassloader != null) {
             // Load recipes using the ClasspathScanningLoader with the additional classloader
-            // This is the key fix - we use the additionalJarsClassloader for recipe discovery
             env.load(new ClasspathScanningLoader(new Properties(), additionalJarsClassloader));
-            //classLoaderUtils.merge(getClass().getClassLoader(), additionalJarsClassloader);
             System.out.println("Loaded recipes from additional JARs");
         }
 
