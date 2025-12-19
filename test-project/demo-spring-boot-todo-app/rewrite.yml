@@ -10,3 +10,8 @@ recipeList:
   - org.openrewrite.text.Find:
       find: SpringBootApplication
       filePattern: '**/*.java'
+  - org.openrewrite.text.Find:
+      find: SpringBootApplication
+      filePattern: '**/*.java'
+  - org.openrewrite.properties.search.FindProperties:
+      propertyKey: spring.datasource.username
