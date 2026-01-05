@@ -53,12 +53,13 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- jitpack -->
+        <!-- jitpack
         <dependency>
             <groupId>com.github.snowdrop</groupId>
             <artifactId>rewrite-standalone-cli</artifactId>
             <version>main-SNAPSHOT</version>
         </dependency>
+        -->
 
         <!-- Quarkus dependencies -->
         <dependency>
@@ -156,12 +157,14 @@
         </dependency>
     </dependencies>
 
+    <!-- Not needed
     <repositories>
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
     </repositories>
+    -->
 
     <build>
         <plugins>
