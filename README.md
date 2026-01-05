@@ -51,11 +51,19 @@ SearchResults.Row record = (SearchResults.Row)rows.getFirst();
 assertEquals("src/main/java/com/todo/app/AppApplication.java",record.getSourcePath());
 assertEquals("@SpringBootApplication",record.getResult());
 assertEquals("Find annotations `@org.springframework.boot.autoconfigure.SpringBootApplication,matchMetaAnnotations=false`",record.getRecipe());
+```
+### To install the client locally
 
-
+The client can be installed using [jbang tool](https://www.jbang.dev/) with the following command
+```shell
+jbang app install openrewrite@snowdrop/rewrite-standalone-cli
+```
+When done, use the client
+```shell
+code/application-modernisation/01_openrewrite/rewrite-standalone-cli
 ```
 
-### To use the client
+### To compile the code and use it
 
 Git clone this project and compile the project. Next launch the Quarkus Picocli client using the command: `mvn quarkus:dev`
 
