@@ -1,4 +1,7 @@
 jdk:
   - openjdk21
+before_install:
+  - sdk install maven 3.9.11
+  - sdk use maven 3.9.11
 install:
   - mvn install -DskipTests -Dquarkus.package.type=uber-jar
