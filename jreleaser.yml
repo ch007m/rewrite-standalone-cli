@@ -16,6 +16,14 @@ release:
     changelog:
       formatted: ALWAYS
       preset: conventional-commits
+      contributors:
+        format: '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
+
+distributions:
+  openrewrite-cli:
+    type: SINGLE_JAR
+    artifacts:
+      - path: target/{{projectName}}-{{projectVersion}}-runner.jar
 
 #packagers:
 #  # https://jreleaser.org/guide/latest/reference/packagers/jbang.html
@@ -26,12 +34,3 @@ release:
 #      active: ALWAYS
 #      owner: snowdrop
 #      name: rewrite-standalone-cli
-
-distributions:
-  openrewrite-cli:
-    type: SINGLE_JAR
-    artifacts:
-      - path: target/{{projectName}}-{{projectVersion}}-runner.jar
-
-upload:
-  active: ALWAYS
