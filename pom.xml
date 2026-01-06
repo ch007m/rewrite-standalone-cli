@@ -25,8 +25,8 @@
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.29.4</quarkus.platform.version>
 
-        <openrewrite-recipe-bom.version>3.15.0</openrewrite-recipe-bom.version>
-        <openrewrite-bom.version>8.69.0</openrewrite-bom.version>
+        <openrewrite-bom.version>8.70.4</openrewrite-bom.version>
+        <openrewrite-rewrite-polyglot.version>2.9.1</openrewrite-rewrite-polyglot.version>
 
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.2.5</surefire-plugin.version>
@@ -83,7 +83,7 @@
         <dependency>
             <groupId>org.openrewrite</groupId>
             <artifactId>rewrite-polyglot</artifactId>
-            <version>2.9.1</version>
+            <version>${openrewrite-rewrite-polyglot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.openrewrite</groupId>
