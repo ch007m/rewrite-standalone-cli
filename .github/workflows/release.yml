@@ -29,7 +29,9 @@ jobs:
           java-version: 21
 
       - name: Build the uber-jar
-        run: ./mvnw -ntp -B clean install -Dquarkus.package.type=uber-jar
+        run: |
+          ./mvnw -ntp -B clean install -Dquarkus.package.type=uber-jar
+          mvn jreleaser:full-release
 
       - name: Release using jreleaser
         uses: jreleaser/release-action@v2

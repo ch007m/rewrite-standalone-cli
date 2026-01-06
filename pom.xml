@@ -8,7 +8,8 @@
     <artifactId>rewrite-standalone-cli</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <name>OpenRewrite Standalone CLI</name>
-    <description>Quarkus-based standalone CLI for OpenRewrite with Picocli</description>
+    <description>Quarkus Openrewrite client to apply recipes</description>
+    <inceptionYear>2026</inceptionYear>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -31,7 +32,21 @@
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.2.5</surefire-plugin.version>
         <maven-resolver-supplier.version>1.9.24</maven-resolver-supplier.version>
+        <jreleaser-maven-plugin.version>1.22.0</jreleaser-maven-plugin.version>
     </properties>
+
+    <licenses>
+        <license>
+            <name>Apache-2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <id>snowdrop</id>
+            <name>Snowdrop Team</name>
+        </developer>
+    </developers>
 
     <dependencyManagement>
         <dependencies>
@@ -171,6 +186,16 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.jreleaser</groupId>
+                <artifactId>jreleaser-maven-plugin</artifactId>
+                <version>${jreleaser-maven-plugin.version}</version>
+                <configuration>
+                    <configFile>jreleaser.yml</configFile>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${compiler-plugin.version}</version>

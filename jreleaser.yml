@@ -1,10 +1,11 @@
 project:
-  name: rewrite-standalone-cli
-  version: {{projectVersion}}
-  description: Openrewrite client to apply recipes
-  longDescription: Openrewrite client to apply recipes
-  authors: [ "snowdrop" ]
-  license: Apache-2.0
+  # JReleaser will fill these from Maven automatically:
+  # name: ${project.artifactId}
+  # version: ${project.version}
+  # description: Openrewrite client to apply recipes
+  # longDescription: Openrewrite client to apply recipes
+  # authors: [ "snowdrop" ]
+  # license: Apache-2.0
   links:
     homepage: https://github.com/snowdrop/rewrite-standalone-cli
 
@@ -31,5 +32,7 @@ packagers:
 distributions:
   openrewrite-cli:
     type: JAVA_BINARY
+    java:
+      mainClass: org.snowdrop.openrewrite.cli.RewriteCommand
     artifacts:
       - path: target/{{projectName}}-{{projectVersion}}-runner.jar
