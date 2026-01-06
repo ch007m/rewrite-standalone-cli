@@ -44,6 +44,22 @@ jobs:
           java-version: 21
           cache: 'maven'
 
+      - name: Configure Maven settings
+        run: |
+             mkdir -p ~/.m2
+             cat > ~/.m2/settings.xml <<'EOF'
+             <settings>
+               <mirrors>
+                 <mirror>
+                   <id>central-mirror</id>
+                   <name>Central Mirror</name>
+                   <url>https://repo1.maven.org/maven2</url>
+                   <mirrorOf>central</mirrorOf>
+                 </mirror>
+               </mirrors>
+             </settings>
+             EOF
+
       - name: Build the uber-jar
         run: |
           mvn -ntp -B clean install -Dquarkus.package.type=uber-jar
