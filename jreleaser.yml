@@ -29,7 +29,5 @@ release:
 distributions:
   openrewrite-cli:
     type: JAVA_BINARY
-    java:
-      mainClass: org.snowdrop.openrewrite.cli.RewriteCommand
     artifacts:
       - path: target/{{projectName}}-{{projectVersion}}-runner.jar
