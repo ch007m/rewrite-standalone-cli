@@ -65,6 +65,15 @@ jobs:
           JRELEASER_PROJECT_VERSION: ${{ needs.precheck.outputs.VERSION }}
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Update jBang catalog for snapshot
+        if: github.ref == 'refs/heads/main'
+        run: |
+          SNAPSHOT_URL="https://github.com/${{ github.repository }}/releases/download/early-access/rewrite-standalone-cli-${{ needs.precheck.outputs.VERSION }}-runner.jar"
+          jq --arg url "$SNAPSHOT_URL" '.aliases.openrewrite."script-ref" = $url' jbang-catalog.json > tmp.json && mv tmp.json jbang-catalog.json
+          git add jbang-catalog.json
+          git commit -m "Update jBang catalog for snapshot release" || exit 0
+          git push
+
       - name: JReleaser output
         if: always()
         uses: actions/upload-artifact@v4
