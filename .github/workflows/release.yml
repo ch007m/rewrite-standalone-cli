@@ -25,7 +25,7 @@ jobs:
           distribution: temurin
           java-version: 21
       - name: Build the uber-jar
-        run: ./mvnw clean install -Dquarkus.package.type=uber-jar
+        run: ./mvnw -ntp -B clean install -Dquarkus.package.type=uber-jar
       - name: Release
         uses: softprops/action-gh-release@v2
         #if: github.ref_type == 'tag'
