@@ -16,7 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       VERSION: ${{ steps.vars.outputs.VERSION }}
-      NEW_SHA: ${{ steps.vars.outputs.NEW_SHA }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -50,13 +49,6 @@ jobs:
           ./mvnw -ntp -B versions:set versions:commit -DnewVersion=$VERSION
           git commit -a -m "Releasing version $VERSION"
           git push origin main
-          echo "NEW_SHA=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-
-      - name: Bump the maven version to the next SNAPSHOT version
-        run: |
-          ./mvnw -ntp -B versions:set -DnextSnapshot=true versions:commit
-          git commit -a -m "Bump the pom version to the next SNAPSHOT"
-          git push origin main
 
   build-release:
     needs: [ precheck ]
@@ -64,7 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ needs.precheck.outputs.NEW_SHA }}
+          ref: main
           fetch-depth: 0
 
       - name: Set up JDK 21
@@ -112,11 +104,15 @@ jobs:
             echo "Updating catalog with new URL: ${NEW_URL}"
             jq --arg url "$NEW_URL" '.aliases.openrewrite["script-ref"] = $url' jbang-catalog.json > temp.json && mv temp.json jbang-catalog.json
 
-      - name: Commit and Push Catalog Changes
+      - name: Commit and Push the changes
         run: |
           git add jbang-catalog.json
           git diff --quiet && git diff --staged --quiet || git commit -m "chore: Update jBang catalog for release ${TAG}"
-          git pull -r
+
+      - name: Bump the maven version to the next SNAPSHOT version and push
+        run: |
+          ./mvnw -ntp -B versions:set -DnextSnapshot=true versions:commit
+          git commit -a -m "Bump the pom version to the next SNAPSHOT"
           git push origin HEAD:main
 
       - name: JReleaser output
