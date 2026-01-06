@@ -116,6 +116,7 @@ jobs:
         run: |
           git add jbang-catalog.json
           git diff --quiet && git diff --staged --quiet || git commit -m "chore: Update jBang catalog for release ${TAG}"
+          git pull -r
           git push origin HEAD:main
 
       - name: JReleaser output
