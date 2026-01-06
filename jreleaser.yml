@@ -24,10 +24,8 @@ packagers:
     alias: openrewrite
     catalog:
       active: ALWAYS
-      # If your catalog is in the same repo, leave owner/name default
-      # Otherwise, specify the target repo:
-      # owner: snowdrop
-      # name: rewrite-standalone-cli
+      owner: snowdrop
+      name: rewrite-standalone-cli
 
 distributions:
   openrewrite-cli:
