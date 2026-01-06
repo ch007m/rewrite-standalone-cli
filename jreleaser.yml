@@ -31,3 +31,6 @@ distributions:
     type: JAVA_BINARY
     artifacts:
       - path: target/{{projectName}}-{{projectVersion}}-runner.jar
+
+upload:
+  active: ALWAYS
