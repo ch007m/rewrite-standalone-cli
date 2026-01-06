@@ -22,7 +22,7 @@ packagers:
     active: ALWAYS
     # This updates your alias in jbang-catalog.json
     alias: openrewrite
-    catalog:
+    repository:
       active: ALWAYS
       owner: snowdrop
       name: rewrite-standalone-cli
