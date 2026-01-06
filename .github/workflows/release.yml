@@ -37,14 +37,17 @@ jobs:
           </settings>
           EOF
 
+      - name: Configure git user and email
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "Github Action"
+
       - name: Bump the maven version and push
         id: vars
         shell: bash
         run: |
           VERSION=${{ github.event.inputs.version }}
           ./mvnw -ntp -B versions:set versions:commit -DnewVersion=$VERSION
-          git config --global user.email "info@snowdrop.dev"
-          git config --global user.name "Snowdrop team"
           git commit -a -m "Releasing version $VERSION"
           git push origin main
           echo "NEW_SHA=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
@@ -64,6 +67,11 @@ jobs:
           distribution: temurin
           java-version: 21
           cache: 'maven'
+
+      - name: Configure git user and email
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "Github Action"
 
       - name: Configure Maven settings
         run: |
@@ -101,11 +109,9 @@ jobs:
 
       - name: Commit and Push Catalog Changes
         run: |
-          git config --global user.email "info@snowdrop.dev"
-          git config --global user.name "Snowdrop team"
           git add jbang-catalog.json
-          git commit -m "chore: Update jBang catalog for release ${TAG}" || exit 0
-          git push
+          git diff --quiet && git diff --staged --quiet || git commit -m "chore: Update jBang catalog for release ${TAG}"
+          git push origin HEAD:main
 
       - name: JReleaser output
         if: always()
