@@ -42,7 +42,7 @@ jobs:
           git config --global user.email "action@github.com"
           git config --global user.name "Github Action"
 
-      - name: Bump the maven version and push
+      - name: Set the maven version to the release version and push
         id: vars
         shell: bash
         run: |
@@ -51,6 +51,12 @@ jobs:
           git commit -a -m "Releasing version $VERSION"
           git push origin main
           echo "NEW_SHA=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Bump the maven version to the next SNAPSHOT version
+        run: |
+          ./mvnw -ntp -B versions:set -DnextSnapshot=true versions:commit
+          git commit -a -m "Bump the pom version to the next SNAPSHOT"
+          git push origin main
 
   build-release:
     needs: [ precheck ]
