@@ -35,11 +35,6 @@ jobs:
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Release using jreleaser
-        uses: jreleaser/release-action@v2
-        env:
-          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       #- name: Release using softprops/action-gh-release
       #  uses: softprops/action-gh-release@v2
       #  with:
