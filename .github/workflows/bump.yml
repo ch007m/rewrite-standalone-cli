@@ -1,4 +1,4 @@
-name: "Post-Release: Bump Version"
+name: "CI - Bump Version"
 
 on:
   pull_request:
