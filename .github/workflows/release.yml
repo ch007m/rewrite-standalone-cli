@@ -28,6 +28,11 @@ jobs:
           distribution: temurin
           java-version: 21
           cache: 'maven'
+          server-id: central
+          server-username: MAVEN_USERNAME # Sonatype "snowdrop-team" usertoken: username
+          server-password: MAVEN_PASSWORD # Sonatype "snowdrop-team" usertoken: password
+          gpg-private-key: ${{ secrets.GPG_SECRET_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
       - name: Configure git user and email
         run: |
@@ -63,6 +68,14 @@ jobs:
           mvn -ntp -B jreleaser:full-release
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy the maven GAV on central
+        run: |
+          mvn -B deploy -Prelease -DskipTests
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: Push branch and Create Pull Request
         run: |
