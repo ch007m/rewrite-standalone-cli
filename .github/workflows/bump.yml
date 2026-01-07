@@ -33,12 +33,21 @@ jobs:
           git config --global user.email "action@github.com"
           git config --global user.name "Github Action"    
 
-      - name: Bump to Next Snapshot
+      - name: Delete Release Branch
+        run: |
+           echo "Deleting branch: ${{ github.head_ref }}"
+           gh api -X DELETE /repos/${{ github.repository }}/git/refs/heads/${{ github.head_ref }}
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bump to the next Snapshot
         run: |
           # 1. Increment the version (e.g., 1.0.0 -> 1.0.1-SNAPSHOT)
           ./mvnw -ntp -B versions:set -DnextSnapshot=true versions:commit
           
+          NEW_VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+          
           # 2. Commit and Push
           git add pom.xml
-          git commit -m "chore: Next development version [skip ci]"
+          git commit -m "chore: Bump the project to the next development version: $NEW_VERSION [skip ci]"
           git push origin main
