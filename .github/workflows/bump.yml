@@ -37,8 +37,8 @@ jobs:
         run: |
            echo "Deleting branch: ${{ github.head_ref }}"
            gh api -X DELETE /repos/${{ github.repository }}/git/refs/heads/${{ github.head_ref }}
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Bump to the next Snapshot
         run: |
