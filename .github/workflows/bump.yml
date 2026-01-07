@@ -49,5 +49,5 @@ jobs:
           
           # 2. Commit and Push
           git add pom.xml
-          git commit -m "chore: Bump the project to the next development version: $NEW_VERSION [skip ci]"
+          git commit -m "chore: Bump the project to the version: $NEW_VERSION [skip ci]"
           git push origin main
