@@ -58,7 +58,7 @@ public class RewriteScanner {
         this.config = cfg;
     }
 
-    protected void init() {
+    public void init() {
         throwables = new ArrayList<>();
         ctx = createExecutionContext(throwables);
 
