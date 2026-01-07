@@ -181,6 +181,11 @@ public class RewriteScanner {
     }
 
     private ResultsContainer processRecipes() {
+        if (env == null) {
+            System.err.println("Environment is not initialized. Cannot process recipes.");
+            return new ResultsContainer(Collections.emptyMap());
+        }
+
         RecipeRun recipeRun = null;
         Recipe recipe = null;
         boolean yamlRecipes = false;

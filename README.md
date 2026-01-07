@@ -51,6 +51,11 @@ assertEquals("src/main/java/com/todo/app/AppApplication.java",record.getSourcePa
 assertEquals("@SpringBootApplication",record.getResult());
 assertEquals("Find annotations `@org.springframework.boot.autoconfigure.SpringBootApplication,matchMetaAnnotations=false`",record.getRecipe());
 ```
+
+> [!TRICK]
+> See the sample [rewritescanner](sample/rewritescanner)  as a maven example to start to play with the scanner and don't forget to change the path of the config
+> `cfg.setAppPath(Paths.get("/PATH/TO/JAVA/test-project/simple"));` !
+
 ### To use instead the client locally
 
 The client can be installed using the [jbang tool](https://www.jbang.dev/) with the following command

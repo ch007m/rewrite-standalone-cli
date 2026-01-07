@@ -1,20 +1,22 @@
 package dev.snowdrop.openrewrite.cli.model;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class Config {
     private Path appPath;
-    private List<String> additionalJarPaths;
-    private List<String> activeRecipes;
+    private List<String> additionalJarPaths = new ArrayList<>();
+    private List<String> activeRecipes = new ArrayList<>();
     private String yamlRecipes;
-    private Boolean exportDatatables;
-    private int sizeThresholdMb;
-    private Set<String> exclusions;
-    private Set<String> plainTextMasks;
-    private Set<String> recipeOptions;
-    private boolean dryRun;
+    private Boolean exportDatatables = true;
+    private int sizeThresholdMb = 10;
+    private Set<String> exclusions = new HashSet<>();
+    private Set<String> plainTextMasks = new HashSet<>();
+    private Set<String> recipeOptions = new HashSet<>();
+    private boolean dryRun = true;
 
     public Path getAppPath() {
         return appPath;

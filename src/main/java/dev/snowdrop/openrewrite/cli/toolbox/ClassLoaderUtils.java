@@ -18,7 +18,7 @@ public class ClassLoaderUtils {
      * @return URLClassLoader containing the additional Rewrite JARs, or null if no additional JARs are specified
      */
     public URLClassLoader loadAdditionalJars(List<String> additionalJarPaths) {
-        if (additionalJarPaths.isEmpty()) {
+        if (additionalJarPaths == null || additionalJarPaths.isEmpty()) {
             return null;
         }
 
