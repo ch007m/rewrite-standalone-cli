@@ -105,8 +105,13 @@ jobs:
         run: |
           VERSION=${{ github.event.inputs.version }}
           git add .
-          git commit -m "update the jbang catalog script-ref: ${VERSION}"
-          git push origin main
+          if git diff --cached --quiet; then
+            echo "No changes detected in jbang-catalog.json. Skipping commit."
+          else
+            echo "Changes detected. Committing version ${VERSION}..."
+            git commit -m "update the jbang catalog script-ref: ${VERSION}"
+            git push origin main
+          fi
 
       - name: Release the project and publish the uber-jar as early access release
         run: |
