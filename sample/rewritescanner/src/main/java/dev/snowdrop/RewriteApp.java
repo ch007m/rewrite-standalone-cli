@@ -1,5 +1,5 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS dev.snowdrop.openrewrite:rewrite-standalone-cli:0.0.28
+//DEPS dev.snowdrop.openrewrite:rewrite-standalone-cli:0.0.30
 //DEPS org.junit.jupiter:junit-jupiter-api:5.13.4
 //NOINTEGRATIONS
 
