@@ -1,3 +1,7 @@
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//DEPS dev.snowdrop.openrewrite:rewrite-standalone-cli:0.0.28
+//DEPS org.junit.jupiter:junit-jupiter-api:5.13.4
+
 package dev.snowdrop;
 
 import dev.snowdrop.openrewrite.cli.RewriteScanner;
