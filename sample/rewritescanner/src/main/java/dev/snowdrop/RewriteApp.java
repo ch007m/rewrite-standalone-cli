@@ -21,7 +21,7 @@ public class RewriteApp {
     public static void main(String[] args) {
         String RECIPE_NAME = "org.openrewrite.java.format.AutoFormat";
         Config cfg = new Config();
-        cfg.setAppPath(Paths.get("/Users/cmoullia/code/application-modernisation/01_openrewrite/rewrite-standalone-cli/test-project/simple"));
+        cfg.setAppPath(Paths.get("/PATH/TO/rewrite-standalone-cli/test-project/simple"));
         cfg.setActiveRecipes(List.of(RECIPE_NAME));
 
         RewriteScanner scanner = new RewriteScanner(cfg);
