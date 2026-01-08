@@ -15,6 +15,7 @@ release:
     tagName: "{{projectVersion}}"
     releaseName: "{{tagName}}"
     overwrite: true
+    # https://jreleaser.org/guide/latest/reference/release/changelog.html
     changelog:
       formatted: ALWAYS
       links: true
