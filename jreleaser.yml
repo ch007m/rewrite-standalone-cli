@@ -12,8 +12,8 @@ project:
 release:
   github:
     enabled: true
-    tagName: '{{projectVersion}}'
-    releaseName: '{{tagName}}'
+    tagName: "{{projectVersion}}"
+    releaseName: "{{tagName}}"
     overwrite: true
     changelog:
       formatted: ALWAYS
