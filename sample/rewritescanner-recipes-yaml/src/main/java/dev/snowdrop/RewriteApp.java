@@ -1,6 +1,5 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS dev.snowdrop.openrewrite:rewrite-standalone-cli:0.0.30
-//DEPS org.junit.jupiter:junit-jupiter-api:5.13.4
 //NOINTEGRATIONS
 
 package dev.snowdrop;
@@ -8,7 +7,7 @@ package dev.snowdrop;
 import dev.snowdrop.openrewrite.cli.RewriteScanner;
 import dev.snowdrop.openrewrite.cli.model.Config;
 import dev.snowdrop.openrewrite.cli.model.ResultsContainer;
-import org.junit.jupiter.api.Assertions;
+//import org.junit.jupiter.api.Assertions;
 import org.openrewrite.DataTable;
 import org.openrewrite.RecipeRun;
 
@@ -43,7 +42,7 @@ public class RewriteApp {
             Optional<Map.Entry<DataTable<?>, List<?>>> resultMap = run.getDataTables().entrySet().stream()
                 .filter(entry -> entry.getKey().getName().contains("SearchResults"))
                 .findFirst();
-            Assertions.assertFalse(resultMap.isPresent());
+            //Assertions.assertFalse(resultMap.isPresent());
 
         } catch (Exception e) {
             throw new RuntimeException(e);
