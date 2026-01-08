@@ -1,6 +1,7 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS dev.snowdrop.openrewrite:rewrite-standalone-cli:0.0.31
 //NOINTEGRATIONS
+//RUNTIME_OPTIONS -Djava.util.logging.manager=org.jboss.logmanager.LogManager
 
 package dev.snowdrop;
 
