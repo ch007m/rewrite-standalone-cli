@@ -1,5 +1,5 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS dev.snowdrop.openrewrite:rewrite-standalone-cli:0.0.30
+//DEPS dev.snowdrop.openrewrite:rewrite-standalone-cli:0.0.31
 //NOINTEGRATIONS
 
 package dev.snowdrop;
