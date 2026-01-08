@@ -17,6 +17,7 @@ release:
     overwrite: true
     changelog:
       formatted: ALWAYS
+      links: true
       preset: conventional-commits
       contributors:
         format: '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
