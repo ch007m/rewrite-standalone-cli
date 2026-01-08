@@ -1,6 +1,8 @@
 ## Changelog
 
-{{changelog}}
+{{changelogChanges}}
+
+{{changelogContributors}}
 
 ## 📦 Rewrite modules included
 
