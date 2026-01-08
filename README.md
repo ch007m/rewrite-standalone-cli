@@ -26,7 +26,7 @@ To use the  java project if you import the following dependency
 ```xml
     <groupId>dev.snowdrop.openrewrite</groupId>
     <artifactId>rewrite-client</artifactId>
-    <version>0.0.33</version>
+    <version>0.1.0</version>
 ```
 Next configure the `RewriteScanner` to issue a scan of a java application as described hereafter
 ```java
@@ -74,7 +74,7 @@ openrewrite test-project/simple -r org.openrewrite.java.format.AutoFormat
 > [!NOTE]
 > To install a released version, append to the reference of the version
 ```shell
-jbang app install openrewrite@snowdrop/rewrite-client/v0.0.33
+jbang app install openrewrite@snowdrop/rewrite-client/v0.1.0
 ```
 
 ### To start with the code
