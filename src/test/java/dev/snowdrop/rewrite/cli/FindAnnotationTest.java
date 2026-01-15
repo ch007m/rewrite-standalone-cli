@@ -2,7 +2,6 @@ package dev.snowdrop.rewrite.cli;
 
 import dev.snowdrop.openrewrite.cli.RewriteCommand;
 import io.quarkus.test.junit.QuarkusTest;
-import org.jetbrains.kotlin.com.intellij.openapi.util.text.Strings;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DataTable;
 import org.openrewrite.RecipeRun;
@@ -19,7 +18,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
-public class FindAnnotation extends BaseTest {
+public class FindAnnotationTest extends BaseTest {
 
     @Test
     void shouldFindAnnotation() throws Exception {
