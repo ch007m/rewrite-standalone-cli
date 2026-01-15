@@ -13,7 +13,7 @@ Traditionally, it's used via Maven goals (`mvn rewrite:run` or `mvn rewrite:dryR
 
 - **Execute recipes programmatically** from your Java code
 - **Run recipes via CLI** without Maven
-- **Process results directly** without parsing Maven logs
+- **Process results directly** without parsing console logs or csv files generated.
 - **Integrate easily** into custom migration tools and workflows
 
 ## Quick Start
@@ -30,10 +30,10 @@ Add the dependency to your project:
 </dependency>
 ```
 
-Use the `RewriteCli` to process a Java project:
+Use the `RewriteService` to process a Java project:
 
 ```java
-import dev.snowdrop.openrewrite.RewriteScanner;
+import dev.snowdrop.openrewrite.RewriteService;
 import dev.snowdrop.openrewrite.Config;
 import dev.snowdrop.openrewrite.ResultsContainer;
 
@@ -41,7 +41,7 @@ Config cfg = new Config();
 cfg.setAppPath(Paths.get("/path/to/your/project"));
 cfg.setActiveRecipes(List.of("org.openrewrite.java.format.AutoFormat"));
 
-RewriteScanner scanner = new RewriteScanner(cfg);
+RewriteService scanner = new RewriteService(cfg);
 scanner.init();
 ResultsContainer results = scanner.run();
 
@@ -102,7 +102,7 @@ Config cfg = new Config();
 cfg.setAppPath(Paths.get("/path/to/project"));
 cfg.setActiveRecipes(List.of("org.openrewrite.java.format.AutoFormat"));
 
-RewriteScanner scanner = new RewriteScanner(cfg);
+RewriteService scanner = new RewriteService(cfg);
 scanner.init();
 ResultsContainer results = scanner.run();
 ```
