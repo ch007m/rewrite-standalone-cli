@@ -2,7 +2,6 @@ package dev.snowdrop.rewrite.cli;
 
 import dev.snowdrop.openrewrite.cli.RewriteCommand;
 import io.quarkus.test.junit.QuarkusTest;
-import org.jetbrains.kotlin.com.intellij.openapi.util.text.Strings;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DataTable;
 import org.openrewrite.RecipeRun;
@@ -31,7 +30,7 @@ public class FindAnnotation extends BaseTest {
 
         // Configure the application to scan and recipe to be executed
         cfg.setAppPath(Paths.get(appPath));
-        cfg.setActiveRecipes(List.of(recipeName));
+        cfg.setRecipes(List.of(recipeName));
         cfg.setRecipeOptions(Set.of("annotationPattern=@org.springframework.boot.autoconfigure.SpringBootApplication,matchMetaAnnotations=false"));
 
         var results = rewriteCmd.execute(cfg);

@@ -9,8 +9,8 @@ import java.util.Set;
 public class RewriteConfig {
     private Path appPath;
     private List<String> additionalJarPaths = new ArrayList<>();
-    private List<String> activeRecipes = new ArrayList<>();
-    private String yamlRecipes;
+    private List<String> recipes = new ArrayList<>();
+    private String yamlRecipesPath;
     private Boolean exportDatatables = true;
     private int sizeThresholdMb = 10;
     private Set<String> exclusions = new HashSet<>();
@@ -34,20 +34,20 @@ public class RewriteConfig {
         this.additionalJarPaths = additionalJarPaths;
     }
 
-    public List<String> getActiveRecipes() {
-        return activeRecipes;
+    public List<String> getRecipes() {
+        return recipes;
     }
 
-    public void setActiveRecipes(List<String> activeRecipes) {
-        this.activeRecipes = activeRecipes;
+    public void setRecipes(List<String> recipes) {
+        this.recipes = recipes;
     }
 
-    public String getYamlRecipes() {
-        return yamlRecipes;
+    public String getYamlRecipesPath() {
+        return yamlRecipesPath;
     }
 
-    public void setYamlRecipes(String yamlRecipes) {
-        this.yamlRecipes = yamlRecipes;
+    public void setYamlRecipesPath(String yamlRecipesPath) {
+        this.yamlRecipesPath = yamlRecipesPath;
     }
 
     public Boolean canExportDatatables() {
