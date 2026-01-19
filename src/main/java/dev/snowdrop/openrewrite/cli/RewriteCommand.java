@@ -71,8 +71,8 @@ public class RewriteCommand implements Runnable {
     Path projectRoot;
 
     @CommandLine.Option(
-        names = {"-r", "--recipes"},
-        description = "Recipe to run (e.g., org.openrewrite.java.format.AutoFormat)",
+        names = {"-r", "--recipe"},
+        description = "FQName of the Recipe to run (e.g., org.openrewrite.java.format.AutoFormat)",
         required = false
     )
     String recipeName;
