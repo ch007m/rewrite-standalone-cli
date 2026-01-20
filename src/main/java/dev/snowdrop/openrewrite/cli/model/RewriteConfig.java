@@ -16,11 +16,9 @@ public class RewriteConfig {
 
     // FQName of the recipe class to be executed
     private String namedRecipe;
-    // Options to be set to the Recipe Class
-    private Set<String> recipeOptions = new HashSet<>();
 
-    // List of Recipe
-    private List<Recipe> recipes = new ArrayList<>();
+    // List of string defined as k=v, k=v, etc to configure the fields of the Recipe class
+    private Set<String> recipeOptions = new HashSet<>();
 
     // Path of the Yaml Recipes file
     private String yamlRecipesPath;
@@ -53,14 +51,6 @@ public class RewriteConfig {
 
     public void setNamedRecipe(String namedRecipe) {
         this.namedRecipe = namedRecipe;
-    }
-
-    public List<Recipe> getRecipes(List<Recipe> recipes) {
-        return recipes;
-    }
-
-    public void setRecipes(List<Recipe> recipes) {
-        this.recipes = recipes;
     }
 
     public String getYamlRecipesPath() {

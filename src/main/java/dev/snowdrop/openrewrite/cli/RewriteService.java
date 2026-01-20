@@ -196,9 +196,8 @@ public class RewriteService {
             env = loadRecipesFromYAML(env);
             yamlRecipes = true;
         } else {
-            // Check if we got a recipe with a FQName string instead and load it
+            // Check if we got a recipe with a FQName string and load it
             if (rewriteConfig.getNamedRecipe() != null && !rewriteConfig.getNamedRecipe().isEmpty()) {
-                // TODO: To be improved to iterate in a list
                 recipe = env.activateRecipes(rewriteConfig.getNamedRecipe());
 
                 // When we use `activeRecipe` parameter, we can also optionally configure the parameters of the recipe where the fields will be set
@@ -215,7 +214,7 @@ public class RewriteService {
             return new ResultsContainer(Collections.emptyMap());
         }
 
-        // Run the recipe loaded
+        // Run the recipe created using the FQName
         if (!yamlRecipes) {
             System.out.println("Using active recipe(s): " + recipe.getName());
 
