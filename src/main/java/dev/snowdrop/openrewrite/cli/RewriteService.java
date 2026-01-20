@@ -197,8 +197,8 @@ public class RewriteService {
             yamlRecipes = true;
         } else {
             // Check if we got a recipe with a FQName string and load it
-            if (rewriteConfig.getNamedRecipe() != null && !rewriteConfig.getNamedRecipe().isEmpty()) {
-                recipe = env.activateRecipes(rewriteConfig.getNamedRecipe());
+            if (rewriteConfig.getFqNameRecipe() != null && !rewriteConfig.getFqNameRecipe().isEmpty()) {
+                recipe = env.activateRecipes(rewriteConfig.getFqNameRecipe());
 
                 // When we use `activeRecipe` parameter, we can also optionally configure the parameters of the recipe where the fields will be set
                 // using the parameter "options"

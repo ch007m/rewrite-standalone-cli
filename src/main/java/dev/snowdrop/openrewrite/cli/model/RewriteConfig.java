@@ -1,7 +1,5 @@
 package dev.snowdrop.openrewrite.cli.model;
 
-import org.openrewrite.Recipe;
-
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -15,7 +13,7 @@ public class RewriteConfig {
     private List<String> additionalJarPaths = new ArrayList<>();
 
     // FQName of the recipe class to be executed
-    private String namedRecipe;
+    private String fqNameRecipe;
 
     // List of string defined as k=v, k=v, etc to configure the fields of the Recipe class
     private Set<String> recipeOptions = new HashSet<>();
@@ -45,12 +43,12 @@ public class RewriteConfig {
         this.additionalJarPaths = additionalJarPaths;
     }
 
-    public String getNamedRecipe() {
-        return namedRecipe;
+    public String getFqNameRecipe() {
+        return fqNameRecipe;
     }
 
-    public void setNamedRecipe(String namedRecipe) {
-        this.namedRecipe = namedRecipe;
+    public void setFqNameRecipe(String fqNameRecipe) {
+        this.fqNameRecipe = fqNameRecipe;
     }
 
     public String getYamlRecipesPath() {

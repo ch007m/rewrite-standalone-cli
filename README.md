@@ -100,7 +100,7 @@ openrewrite /path/to/project -r org.openrewrite.java.format.AutoFormat
 ```java
 Config cfg = new Config();
 cfg.setAppPath(Paths.get("/path/to/project"));
-cfg.setRecipes(List.of("org.openrewrite.java.format.AutoFormat"));
+cfg.setFqNameRecipe("org.openrewrite.java.format.AutoFormat");
 
 RewriteService scanner = new RewriteService(cfg);
 scanner.init();
