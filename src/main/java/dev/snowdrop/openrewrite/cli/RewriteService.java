@@ -49,7 +49,7 @@ import static org.openrewrite.Tree.randomId;
 public class RewriteService {
 
     private ExecutionContext ctx;
-    private List<Throwable> throwables;
+    private List<Throwable> throwables = new ArrayList<>();
     private Environment env;
     private LargeSourceSet sourceSet;
     private RewriteConfig rewriteConfig;
@@ -67,10 +67,6 @@ public class RewriteService {
             // Instantiate the resource and classloader including also the external one provided
             env = createEnvironment();
             sourceSet = loadSourceSet(env, ctx);
-
-            if (sourceSet.getChangeset().size() > 0) {
-                sourceSetInitialized = true;
-            }
         } catch (Exception ex) {
             System.err.println("Error while initializing");
             ex.printStackTrace(System.err);
@@ -87,6 +83,10 @@ public class RewriteService {
             createPatchFile(results);
         }
         return results;
+    }
+
+    public void updateConfig(RewriteConfig cfg) {
+        this.rewriteConfig = cfg;
     }
 
     private ExecutionContext createExecutionContext(List<Throwable> throwables) {
@@ -380,6 +380,12 @@ public class RewriteService {
             .collect(toList());
 
         System.out.println("Total source files parsed: " + sourceFiles.size());
+        if (!sourceFiles.isEmpty()) {
+            sourceSetInitialized = true;
+        } else {
+            throw new IllegalStateException("No source files parsed from the project scanned !");
+        }
+
         return new InMemoryLargeSourceSet(sourceFiles);
     }
 
