@@ -29,7 +29,12 @@ import org.openrewrite.quark.Quark;
 import org.openrewrite.remote.Remote;
 import org.openrewrite.text.PlainTextParser;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.InputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
@@ -39,7 +44,16 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
@@ -59,13 +73,35 @@ public class RewriteService {
         this.rewriteConfig = cfg;
     }
 
-    public void init() {
-        throwables = new ArrayList<>();
-        ctx = createExecutionContext(throwables);
+    /**
+     * Configure Openrewrite by creating the:
+     *
+     * - Environment holding the resource loaders able to find Recipe classes from jar, classes loaded or Yaml
+     * - ExecutionContext able to collect from the execution of the different Recipe the messages containing the Map of the DataTable, etc
+     * - LargeSourceSet using different parsers able to read: Java, Maven, Properties, XML, JSON, etc files
+     *
+     * @throws Exception
+     */
+    public void init() throws Exception {
+        createEnvironmentWithLoaders();
+        createExecutionContext();
+        scanLoadResources();
+    }
 
+    public void createEnvironmentWithLoaders() {
         try {
-            // Instantiate the resource and classloader including also the external one provided
             env = createEnvironment();
+        } catch (Exception ex) {
+            System.err.println("Error while creating environment: " + ex.getMessage());
+        }
+    }
+
+    public void createExecutionContext() {
+        ctx = createExecutionContext(throwables);
+    }
+
+    public void scanLoadResources() {
+        try {
             sourceSet = loadSourceSet(env, ctx);
         } catch (Exception ex) {
             System.err.println("Error while initializing");

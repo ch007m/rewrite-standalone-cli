@@ -201,6 +201,31 @@ if (resultMap.isPresent()) {
 // run.getChangeset()...
 ```
 
+## Reuse resources already scanned
+
+When you use the method `init()` of the `RewriteService`, then the library will create the following OpenRewrite class during the call to the method:
+
+- `Environment` holding the resource loaders able to find Recipe classes from jar, classes loaded or Yaml
+- `ExecutionContext` able to collect from the execution of the different Recipe the messages containing the Map of the DataTable, etc
+- `LargeSourceSet` using different parsers able to read: Java, Maven, Properties, XML, JSON, etc files
+
+It is nevertheless possible, to scan the resources one time and apply different recipes. In this case, we recommend you to create a singleton of the `RewriteService` and next to call separately the following methods:
+
+```java
+// Create a singleton instance of the RewriteService to allow to load only one time all the resources of a project to scan
+RewriteService svc = createRewriteServiceInstance(cfg);
+
+if (svc.isSourceSetInitialized()) {
+	svc.createExecutionContext();
+	svc.updateConfig(cfg);
+} else {
+	svc.init();
+}
+
+// Execute now a recipe
+ResultsContainer run = svc.run();
+```
+
 ## Development
 
 ### Prerequisites
